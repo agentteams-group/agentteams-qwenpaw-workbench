@@ -33,8 +33,9 @@ export const millforgeDict: Record<string, { en: string }> = {
   "整队组合的领域不属于所选行业——已清空 domains（可手动补选）": {
     en: "Combo domains don't belong to the selected industry — domains cleared (re-pick manually if needed)",
   },
-  "成员（leader/workers/critic）": { en: "Members (leader/workers/critic)" },
+  "成员（leader/workers/critic/writer）": { en: "Members (leader/workers/critic/writer)" },
   "Critic": { en: "Critic" },
+  "Writer": { en: "Writer" },
   "合计 {n} 个角色": { en: "{n} role(s) in total" },
   "角色总数须 2-8": { en: "Total roles must be 2–8" },
   "实验": { en: "experimental" },

@@ -79,7 +79,7 @@ const EMPTY_CUSTOM: MfCustomState = {
 const EMPTY_SPEC: MillforgeTemplateSpec = {
   industry: "",
   domains: [],
-  members: { leader: 1, workers: 2, critic: 0 },
+  members: { leader: 1, workers: 2, critic: 0, writer: 0 },
 };
 
 function errText(e: unknown): string {
@@ -255,7 +255,8 @@ export function useMillforgeCore(tr: TrFn) {
         setSpec((prev) => ({ ...prev, team_combo: "" }));
         return;
       }
-      const num = (v: string, dft: number) => {
+      // writer 可选（旧包 INDEX 无该字段）→ v 允许 undefined（回退 dft）。
+      const num = (v: string | undefined, dft: number) => {
         const n = parseInt(String(v).replace(/\D/g, ""), 10);
         return Number.isFinite(n) && n > 0 ? n : dft;
       };
@@ -286,6 +287,7 @@ export function useMillforgeCore(tr: TrFn) {
           leader: num(combo.members.leader, spec.members?.leader || 1),
           workers: num(combo.members.workers, spec.members?.workers || 2),
           critic: num(combo.members.critic, spec.members?.critic || 0),
+          writer: num(combo.members.writer, spec.members?.writer || 0),
         },
       });
     },

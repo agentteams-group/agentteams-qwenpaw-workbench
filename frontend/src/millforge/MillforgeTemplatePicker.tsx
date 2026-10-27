@@ -71,12 +71,16 @@ export default function MillforgeTemplatePicker({ core, tr, t }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pack, selEntry?.file]);
 
-  const members = spec.members || { leader: 1, workers: 2, critic: 0 };
-  const total = (members.leader || 0) + (members.workers || 0) + (members.critic || 0);
-  const setMember = (k: "leader" | "workers" | "critic", n: number | null) => {
+  const members = spec.members || { leader: 1, workers: 2, critic: 0, writer: 0 };
+  const total =
+    (members.leader || 0) +
+    (members.workers || 0) +
+    (members.critic || 0) +
+    (members.writer || 0);
+  const setMember = (k: "leader" | "workers" | "critic" | "writer", n: number | null) => {
     setSpec((prev) => ({
       ...prev,
-      members: { leader: 1, workers: 2, critic: 0, ...prev.members, [k]: n ?? 0 },
+      members: { leader: 1, workers: 2, critic: 0, writer: 0, ...prev.members, [k]: n ?? 0 },
     }));
   };
 
@@ -127,7 +131,7 @@ export default function MillforgeTemplatePicker({ core, tr, t }: Props) {
             onChange={(v: string | undefined) => pickCombo(v || "")}
             options={index.teams.map((c) => ({
               value: c.id,
-              label: `${c.name || c.id}（${c.industry || "—"} · L${c.members.leader || "?"}/W${c.members.workers || "?"}/C${c.members.critic || "?"}${c.experimental === "true" || c.source === "llm" ? ` · ${tr("实验")}` : ""}）`,
+              label: `${c.name || c.id}（${c.industry || "—"} · L${c.members.leader || "?"}/W${c.members.workers || "?"}/C${c.members.critic || "?"}${c.members.writer ? `/Wr${c.members.writer}` : ""}${c.experimental === "true" || c.source === "llm" ? ` · ${tr("实验")}` : ""}）`,
             }))}
           />
           {comboWarning ? (
@@ -174,7 +178,7 @@ export default function MillforgeTemplatePicker({ core, tr, t }: Props) {
       {/* members 成员数 + lang */}
       <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
         <span style={{ fontSize: 11, color: t.textSecondary, fontWeight: 600 }}>
-          {tr("成员（leader/workers/critic）")}
+          {tr("成员（leader/workers/critic/writer）")}
         </span>
         <antd.InputNumber
           size="small"
@@ -201,6 +205,15 @@ export default function MillforgeTemplatePicker({ core, tr, t }: Props) {
           value={members.critic ?? 0}
           onChange={(v: number | null) => setMember("critic", v)}
           addonBefore={tr("Critic")}
+          style={{ width: 130 }}
+        />
+        <antd.InputNumber
+          size="small"
+          min={0}
+          max={8}
+          value={members.writer ?? 0}
+          onChange={(v: number | null) => setMember("writer", v)}
+          addonBefore={tr("Writer")}
           style={{ width: 130 }}
         />
         <span style={{ fontSize: 11, color: total >= 2 && total <= 8 ? t.textSecondary : "#f5222d" }}>

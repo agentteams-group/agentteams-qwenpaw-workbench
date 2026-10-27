@@ -21,6 +21,9 @@ team.json → 写 {role}.soul.md + fragments/ + received.json（组装结果
 - C4 前置：无 pack 400 / 无 compiler 400 / team 名非法 400 / 互斥 400 /
   budget_override 键与范围 400。
 - C5 builds 留 20（造 21 个旧 build 再编译一次 → 清最旧 2）。
+- C6 writer 角色：writer=1 → roles 恰 1 个 writer（budget 150 / profile 非
+  空 / 形态对齐 critic）/ writer=0 无 writer（回归）/ writer 计入 total
+  2-8 边界（=3 通过；=10 → 400）。
 - I1 注入更新现有 Worker（PUT soul + GET 读回 verified）。
 - I2 注入新建 Worker（POST 带 soul + 读回 verified）。
 - I3 core skill（zip 解包断言 SKILL.md frontmatter + references/protocol/
@@ -240,8 +243,10 @@ TEAM_SCHEMA = {
                 "properties": {
                     "id": {"type": "string",
                            "pattern": "^[a-z0-9][a-z0-9-]{0,31}[a-z0-9]$"},
+                    # 千锻 schema（pack core/schemas/team.schema.json）kind
+                    # 枚举已含 writer（Millforge 021f65c）——fixture 同步。
                     "kind": {"enum": ["coordinator", "leader", "worker",
-                                      "critic"]},
+                                      "critic", "writer"]},
                     "profile": {"type": "string", "minLength": 10,
                                 "maxLength": 2000},
                     "domains": {"type": "array",
@@ -764,6 +769,71 @@ def test_compile_en_lang_flag(client):
     received = json.loads(
         (_build_dir(d["build_id"]) / "received.json").read_text("utf-8"))
     assert received["lang"] == "en"
+
+
+# ── C6 writer 角色（members.writer → kind=writer，形态对齐 critic）────
+
+
+def test_compile_writer_member_emits_writer_role(client):
+    """members.writer=1 → roles 有且仅有 1 个 writer（budget 150 / profile 非空）。"""
+    tc, *_ = client
+    _import_pack(tc)
+    body = {"team": "writer-team",
+            "template": {"industry": "software",
+                         "members": {"leader": 1, "workers": 1,
+                                     "critic": 0, "writer": 1}}}
+    r = tc.post("/millforge/compile", json=body)
+    assert r.status_code == 200, r.text
+    d = r.json()
+    received = json.loads(
+        (_build_dir(d["build_id"]) / "received.json").read_text("utf-8"))
+    writers = [x for x in received["roles"] if x["kind"] == "writer"]
+    assert len(writers) == 1
+    assert writers[0]["id"] == "writer"
+    assert writers[0]["budget"] == 150
+    assert writers[0]["profile"]
+    # total = 3（leader + worker + writer）
+    assert [x["kind"] for x in received["roles"]] == ["leader", "worker",
+                                                      "writer"]
+    # writer 形态对齐 critic：无 domains / 无 skills / 不 spawn
+    assert writers[0]["domains"] == [] and writers[0]["skills"] == []
+    assert writers[0]["spawn"] is False and writers[0]["model"] is None
+    # schema 自洽：组装产物过 Draft7 校验（kind 枚举已含 writer）
+    import jsonschema
+    jsonschema.validate(received, TEAM_SCHEMA)
+
+
+def test_compile_writer_zero_keeps_old_roles(client):
+    """members.writer=0 → 无 writer 角色（回归：老行为不变）。"""
+    tc, *_ = client
+    _import_pack(tc)
+    body = {"team": "nowriter-team",
+            "template": {"industry": "software",
+                         "members": {"leader": 1, "workers": 1,
+                                     "critic": 0, "writer": 0}}}
+    r = tc.post("/millforge/compile", json=body)
+    assert r.status_code == 200, r.text
+    d = r.json()
+    received = json.loads(
+        (_build_dir(d["build_id"]) / "received.json").read_text("utf-8"))
+    assert [x["kind"] for x in received["roles"]] == ["leader", "worker"]
+
+
+def test_compile_writer_counts_into_total_bounds(client):
+    """writer 计入 total 2-8：1+1+0+1=3 通过；1+1+0+8=10 → 400。"""
+    tc, *_ = client
+    _import_pack(tc)
+    r = tc.post("/millforge/compile",
+                json={"team": "wtotal-team",
+                      "template": {"members": {"leader": 1, "workers": 1,
+                                               "critic": 0, "writer": 1}}})
+    assert r.status_code == 200, r.text
+    r = tc.post("/millforge/compile",
+                json={"team": "wbige-team",
+                      "template": {"members": {"leader": 1, "workers": 1,
+                                               "critic": 0, "writer": 8}}})
+    assert r.status_code == 400
+    assert "≤8" in r.json()["detail"]
 
 
 # ── C3 失败映射（非 0 退出 → 422 + 结构）────────────────────────────

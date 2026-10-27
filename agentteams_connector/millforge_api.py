@@ -86,6 +86,7 @@ _TEXT = {
         "leader": "团队 Leader：需求理解、任务拆解、派发与进度整合、验收汇总、双通道回报；只拆解派发审查整合，绝不自己实现。",
         "worker": "执行 Worker：按派发完成任务，实现细节全进 spawn 隔离；每次交付附工具证据（声明-验证绑定）。",
         "critic": "独立验收 Critic：新上下文独立验收（不继承被审者历史）；只审不做，输出证据化结论，争议升级人类终裁。",
+        "writer": "文案/报告撰写 Writer：将需求与交付转写为结构化文案/报告（README、方案、汇报稿）；只写不审，交付附可核查引用。",
         "mission": "{team} 交付团队：以千锻协议完成{ind}域业务，每次交付必须附可验证证据",
         "scope_fallback": "{ind}域内交付任务（自动生成）",
         "non_goals": ["生产环境发布（人类终裁）", "范围外功能（防 scope 漂移）"],
@@ -94,6 +95,7 @@ _TEXT = {
         "leader": "Team Leader: understand, decompose, dispatch, integrate and report via dual channel; never implements hands-on.",
         "worker": "Execution Worker: completes dispatched tasks in spawn isolation; every delivery carries tool evidence.",
         "critic": "Independent Critic: accepts in a fresh context (no auditee history); reviews only, evidence-based verdicts.",
+        "writer": "Writer: turns requirements and deliverables into structured copy and reports (READMEs, proposals, briefings); writes only, deliveries carry checkable references.",
         "mission": "{team} delivery team: run {ind}-domain work under the Millforge protocol; every delivery must carry verifiable evidence",
         "scope_fallback": "Delivery work in the {ind} domain (auto-generated)",
         "non_goals": ["Production releases (human final call)", "Out-of-scope features (anti scope drift)"],
@@ -386,9 +388,10 @@ worker 的 domains 轮转分配（skills 与 domains 同值——生产同式）
     n_leader = _int_member(members_in.get("leader") or 1, "leader")
     n_workers = _int_member(members_in.get("workers") or 2, "workers")
     n_critic = _int_member(members_in.get("critic") or 0, "critic")
+    n_writer = _int_member(members_in.get("writer") or 0, "writer")
     if n_leader < 1:
         raise HTTPException(status_code=400, detail="至少需要 1 个 Leader")
-    total = n_leader + n_workers + n_critic
+    total = n_leader + n_workers + n_critic + n_writer
     if total < 2:
         raise HTTPException(
             status_code=400, detail="角色总数须 ≥2（schema roles minItems=2）"
@@ -449,6 +452,19 @@ worker 的 domains 轮转分配（skills 与 domains 同值——生产同式）
                 "id": "critic" if n_critic == 1 else f"critic-{i + 1}",
                 "kind": "critic",
                 "profile": tx["critic"],
+                "domains": [],
+                "skills": [],
+                "budget": 150,
+                "spawn": False,
+                "model": None,
+            }
+        )
+    for i in range(n_writer):
+        roles.append(
+            {
+                "id": "writer" if n_writer == 1 else f"writer-{i + 1}",
+                "kind": "writer",
+                "profile": tx["writer"],
                 "domains": [],
                 "skills": [],
                 "budget": 150,

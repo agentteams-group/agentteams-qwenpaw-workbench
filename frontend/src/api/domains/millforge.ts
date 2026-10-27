@@ -55,7 +55,8 @@ export interface MillforgeTeamCombo {
   id: string;
   name: string;
   industry: string;
-  members: { leader: string; workers: string; critic: string };
+  /** writer 可选：旧包 INDEX 无该字段（缺省 = 组合不带 writer）。 */
+  members: { leader: string; workers: string; critic: string; writer?: string };
   domains: string;
   source: string;
   experimental: string;
@@ -104,7 +105,7 @@ export interface MillforgeTemplateSpec {
   team_combo?: string;
   industry?: string;
   domains?: string[];
-  members?: { leader?: number; workers?: number; critic?: number };
+  members?: { leader?: number; workers?: number; critic?: number; writer?: number };
 }
 
 /** 编译请求：template（模板路径）与 team_json（LLM 二次生成）恰好给一个。 */
@@ -119,7 +120,7 @@ export interface MillforgeCompileRequest {
 /** 编译产出的单角色 SOUL（soul 仅在编译响应内；build.json 落盘不含全文）。 */
 export interface MillforgeRoleOut {
   role: string;
-  kind: "coordinator" | "leader" | "worker" | "critic";
+  kind: "coordinator" | "leader" | "worker" | "critic" | "writer";
   lines: number;
   budget: number;
   budget_ok: boolean;
