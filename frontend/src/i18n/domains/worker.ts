@@ -24,6 +24,25 @@ export const workerDict: Record<string, { en: string }> = {
   "该 worker 未配置任何 MCP": { en: "No MCP configured for this worker" },
   "（无端点）": { en: "(no endpoint)" },
   "获取失败": { en: "Fetch failed" },
+  // ── Worker 插件面板（worker 已装插件列表，只读表格）──
+  "Worker 插件": { en: "Worker Plugins" },
+  "id": { en: "id" },
+  "name": { en: "name" },
+  "version": { en: "version" },
+  "loaded": { en: "loaded" },
+  "未装载": { en: "not loaded" },
+  "plugin_type": { en: "plugin_type" },
+  "已装 {n} 个 · 已启用 {m} 个": { en: "installed {n} · enabled {m}" },
+  "当前 controller 不支持读取 worker 插件（需升级 controller）": {
+    en: "The current controller cannot read worker plugins (controller upgrade required)",
+  },
+  "未配置 controller 凭据，暂不能读取 worker 插件": {
+    en: "No controller credential configured; cannot read worker plugins for now",
+  },
+  "worker 插件读取失败（{reason}）": {
+    en: "Reading worker plugins failed ({reason})",
+  },
+  "该 worker 未报告任何插件": { en: "No plugins reported by this worker" },
   // ── Worker 环境变量 + 网关探测（1.2.5 #1306 消费，L1/manager only）──
   "环境变量与网关探测": { en: "Env Variables & Gateway Probe" },
   "环境变量": { en: "Env Variables" },
