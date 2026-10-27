@@ -17,6 +17,7 @@ import type {
 } from "../api";
 import {
   BookmarkIcon,
+  BrickIcon,
   CodeIcon,
   PlugIcon,
   SettingsIcon,
@@ -25,6 +26,7 @@ import {
 import ApprovalControl from "./ApprovalControl";
 import WorkerEnvPanel from "./WorkerEnvPanel";
 import WorkerMcpPanel from "./WorkerMcpPanel";
+import WorkerPluginsPanel from "./WorkerPluginsPanel";
 import WorkerRuntimeConfig from "./WorkerRuntimeConfig";
 import WorkerCodingCliPanel from "./WorkerCodingCliPanel";
 import WorkerLlmTuningPanel from "./WorkerLlmTuningPanel";
@@ -296,6 +298,8 @@ function WorkerManageInfo({
   const [envOpen, setEnvOpen] = React.useState(false);
   // 竖屏：Worker MCP（只读合并视图：CRD 声明 + worker 自注册）同款抽屉。
   const [mcpOpen, setMcpOpen] = React.useState(false);
+  // 竖屏：Worker 插件（只读表格：id/name/version/enabled/loaded/plugin_type）同款抽屉。
+  const [pluginsOpen, setPluginsOpen] = React.useState(false);
   // 竖屏：Coding CLI（1.2.5+ #1360）同款抽屉。
   const [cliOpen, setCliOpen] = React.useState(false);
   // 竖屏：LLM 调优（1.2.5+，L1-only 可编辑）同款抽屉。
@@ -582,6 +586,17 @@ function WorkerManageInfo({
             {tr("Worker MCP")}
           </antd.Button>
         ) : null}
+        {/* 竖屏：Worker 插件入口=紧凑按钮（只读表格；Controller 端点
+  未合时由面板内部诚实降级）。 */}
+        {narrow ? (
+          <antd.Button
+            size="small"
+            icon={<BrickIcon size={12} />}
+            onClick={() => setPluginsOpen(true)}
+          >
+            {tr("Worker 插件")}
+          </antd.Button>
+        ) : null}
         {/* 竖屏：Coding CLI 入口=紧凑按钮（1.2.5+ #1360；admin 侧渲染——
   L2 打开后面板自行 403 降级只读，与宽屏同语义）。 */}
         {narrow ? (
@@ -651,6 +666,17 @@ function WorkerManageInfo({
           onClose={() => setMcpOpen(false)}
         >
           <WorkerMcpPanel sheet worker={worker} />
+        </NarrowSheet>
+      ) : null}
+      {/* ：Worker 插件（只读表格）竖屏同款抽屉（懒加载 + 诚实降级，
+  面板内部处理）。 */}
+      {narrow ? (
+        <NarrowSheet
+          open={pluginsOpen}
+          title={tr("Worker 插件")}
+          onClose={() => setPluginsOpen(false)}
+        >
+          <WorkerPluginsPanel sheet worker={worker} />
         </NarrowSheet>
       ) : null}
       {/* ：Coding CLI（AgentTeams 1.2.5+ #1360）竖屏同款抽屉。 */}
@@ -907,6 +933,10 @@ export function WorkerRow({
               {/* ：Worker MCP（只读合并视图：CRD 声明 + worker 自注册），
   x=33 段头轨对齐；自注册读路径懒加载 + 404 诚实降级（面板内部）。 */}
               <WorkerMcpPanel worker={adminWorker} />
+              {/* ：Worker 插件（只读表格：id/name/version/enabled/
+  loaded/plugin_type），x=33 段头轨对齐；懒加载 + 404 诚实降级
+  （面板内部）。 */}
+              <WorkerPluginsPanel worker={adminWorker} />
               {/* ：Coding CLI（AgentTeams 1.2.5+ #1360）宽屏内联卡，
   x=33 段头轨对齐（同款视觉家族；404 旧 Controller=面板内横幅，
   L2=只读降级，探测惰性不后台轮询）。 */}

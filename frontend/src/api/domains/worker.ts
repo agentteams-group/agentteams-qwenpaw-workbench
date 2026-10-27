@@ -503,3 +503,34 @@ export function fetchWorkerMcp(worker: string): Promise<WorkerMcpResult> {
     `/agentteams-proxy/workers/${encodeURIComponent(worker)}/mcp`,
   ) as Promise<WorkerMcpResult>;
 }
+
+// ── Worker 插件只读（Controller 新端点 GET /api/v1/workers/{name}/plugins 代理）──
+
+/** 已装插件条目（字段直传，无凭据无需脱敏）。字段名随 Controller 契约：
+ * id / name / version / enabled / loaded / plugin_type。 */
+export interface WorkerPluginEntry {
+  id?: string;
+  name?: string;
+  version?: string;
+  enabled?: boolean | null;
+  loaded?: boolean | null;
+  plugin_type?: string;
+}
+
+export interface WorkerPluginsResult {
+  available: boolean;
+  worker?: string;
+  /** available=false 时的原因：controller_too_old / no_token。 */
+  reason?: string;
+  plugins?: WorkerPluginEntry[];
+}
+
+/** GET /workers/{worker}/plugins：Controller 端点 404 时后端返回
+ * {available:false, reason:"controller_too_old"}（HTTP 200，不抛错）。 */
+export function fetchWorkerPlugins(
+  worker: string,
+): Promise<WorkerPluginsResult> {
+  return requestJson(
+    `/agentteams-proxy/workers/${encodeURIComponent(worker)}/plugins`,
+  ) as Promise<WorkerPluginsResult>;
+}

@@ -547,6 +547,7 @@ from .routers import (  # noqa: E402
     teams_api,
     upgrade_api,
     worker_mcp_api,
+    worker_plugins_api,
 )
 
 
@@ -599,6 +600,10 @@ def build_router() -> APIRouter:
     # Worker MCP（CRD 声明 + worker 自注册合并读，只读；Controller 端点
     # 404 → 诚实降级 available=false。须在 catch-all 之前，固定路径优先）。
     router.include_router(worker_mcp_api.build_worker_mcp_router())
+    # Worker 插件（worker 已装插件列表只读代理，字段直传无脱敏；
+    # Controller 端点 404 → 诚实降级 available=false。须在 catch-all
+    # 之前，固定路径优先）。
+    router.include_router(worker_plugins_api.build_worker_plugins_router())
     # catch-all 域装配最后（/{target}/{path:path} 位于该域尾部）。
     router.include_router(approval_api.build_approval_router(_kb_shared))
     return router
