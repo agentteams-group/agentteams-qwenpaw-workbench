@@ -546,6 +546,7 @@ from .routers import (  # noqa: E402
     team_files_api,
     teams_api,
     upgrade_api,
+    worker_mcp_api,
 )
 
 
@@ -595,6 +596,9 @@ def build_router() -> APIRouter:
     # 15.27 Worker 运行时环境（PID 1 env 预填充正源，只读 L1）。
     from .routers import runtime_env_api
     router.include_router(runtime_env_api.build_runtime_env_router())
+    # Worker MCP（CRD 声明 + worker 自注册合并读，只读；Controller 端点
+    # 404 → 诚实降级 available=false。须在 catch-all 之前，固定路径优先）。
+    router.include_router(worker_mcp_api.build_worker_mcp_router())
     # catch-all 域装配最后（/{target}/{path:path} 位于该域尾部）。
     router.include_router(approval_api.build_approval_router(_kb_shared))
     return router
